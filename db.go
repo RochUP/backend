@@ -237,7 +237,7 @@ func selectQuestion(db *gorm.DB, meetingId, documentId int, presenterId string) 
 	questions := make([]Question, 0, 10)
 	question_user_id := ""
 	question_id := -1
-	if questions_err := db.Find(&questions, "meeting_id = ? AND document_id = ?", meetingId, documentId).Error; questions_err == nil {
+	if questions_err := db.Find(&questions, "document_id = ?", documentId).Error; questions_err == nil {
 		sort.Sort(ByQuestionTime(questions))
 		for _, q := range questions {
 			if !q.QuestionOk {
