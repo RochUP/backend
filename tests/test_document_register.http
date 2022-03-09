@@ -2,7 +2,7 @@ POST http://localhost:8080/document/register HTTP/1.1
 content-type: application/json
 
 {
-    "documentId": 4,
+    "documentId": 14,
     "documentUrl": "http://test/test",
-    "script": "1行目\n2行目\n3行目"
+    "script": "1行目\n2行目"
 }
