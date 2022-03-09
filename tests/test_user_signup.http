@@ -2,7 +2,7 @@ POST http://localhost:8080/user/signup HTTP/1.1
 content-type: application/json
 
 {
-    "userId": "ziou1",
-    "userName": "ziou",
+    "userId": "ishikawa4",
+    "userName": "ishikawa",
     "userPassword": "12345"
 }

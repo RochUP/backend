@@ -186,14 +186,18 @@ func (c *Client) readPump() {
 				QuestionTime: questionTime,
 				IsVoice:      false,
 			}
-
+			clientStartTime := time.Now()
 			isCreateQuestionOK, questionId := createQuestion(db, question)
+			clientEndTime := time.Now()
+			fmt.Println("createQuestion: took", clientEndTime.Sub(clientStartTime))
 
 			if !isCreateQuestionOK {
 				return
 			}
-
+			clientStartTime = time.Now()
 			presenterId := getPresenterId(db, documentId)
+			clientEndTime = time.Now()
+			fmt.Println("getPresenterId: took", clientEndTime.Sub(clientStartTime))
 
 			messagestruct = QuestionResult{
 				MessageType:  message_type,
@@ -209,7 +213,10 @@ func (c *Client) readPump() {
 			questionId := int(jsonObj.(map[string]interface{})["questionId"].(float64))
 			isVote := jsonObj.(map[string]interface{})["isVote"].(bool)
 
+			clientStartTime := time.Now()
 			meetingId, questionId, voteNum := voteQuestion(db, questionId, isVote)
+			clientEndTime := time.Now()
+			fmt.Println("voteQuestion: took", clientEndTime.Sub(clientStartTime))
 
 			messagestruct = QuestionVoteResult{
 				MessageType: message_type,
@@ -226,9 +233,15 @@ func (c *Client) readPump() {
 			var meetingId int
 
 			if isUp {
+				clientStartTime := time.Now()
 				meetingId = handsUp(db, userId, documentId, documentPage)
+				clientEndTime := time.Now()
+				fmt.Println("handsUp: took", clientEndTime.Sub(clientStartTime))
 			} else {
+				clientStartTime := time.Now()
 				meetingId = handsDown(db, userId, documentId, documentPage)
+				clientEndTime := time.Now()
+				fmt.Println("handsDown: took", clientEndTime.Sub(clientStartTime))
 			}
 
 			messagestruct = HandsUpResult{
@@ -246,7 +259,10 @@ func (c *Client) readPump() {
 				reactionNum int
 			)
 
+			clientStartTime := time.Now()
 			meetingId, reactionNum = voteReaction(db, documentId, documentPage, isReaction)
+			clientEndTime := time.Now()
+			fmt.Println("voteReaction: took", clientEndTime.Sub(clientStartTime))
 
 			messagestruct = ReactionResult{
 				MessageType:  message_type,
@@ -273,9 +289,15 @@ func (c *Client) readPump() {
 					endPresen  bool
 					nextUserId string
 				)
+				clientStartTime := time.Now()
 				endPresen, nextUserId, nextOrder = getNextPresenterId(db, meetingId, presenterId)
+				clientEndTime := time.Now()
+				fmt.Println("getNextPresenterId: took", clientEndTime.Sub(clientStartTime))
 				if !endPresen {
+					clientStartTime := time.Now()
 					moderatorMsgBody = personEnd(presenterId, nextUserId, meetingId)
+					clientEndTime := time.Now()
+					fmt.Println("personEnd: took", clientEndTime.Sub(clientStartTime))
 					isStartPresen = true
 					questionId = -1
 					questionUserId = ""
@@ -286,6 +308,7 @@ func (c *Client) readPump() {
 				}
 				questionCount[meetingId] = 0
 			} else {
+				clientStartTime := time.Now()
 				switch finishType {
 				case "present":
 					moderatorMsgBody, questionUserId, questionId = presenOrQuestionEnd(db, meetingId, presenterId, true)
@@ -295,6 +318,8 @@ func (c *Client) readPump() {
 					fmt.Println("予期せぬfinishType:", finishType)
 					continue
 				}
+				clientEndTime := time.Now()
+				fmt.Println("presenOrQuestionEnd: took", clientEndTime.Sub(clientStartTime))
 				if questionCount[meetingId] == 0 {
 					questionCount[meetingId] = 1
 				} else {

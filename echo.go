@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo"
@@ -72,6 +74,8 @@ type DocumentGetResult struct {
 	DocumentUrl string `json:"documentUrl"`
 	Script      string `json:"script"`
 }
+
+var echo_startTime, echo_endTime time.Time
 
 func initRouting(e *echo.Echo, hub *Hub, db *gorm.DB) {
 
@@ -144,7 +148,10 @@ func initRouting(e *echo.Echo, hub *Hub, db *gorm.DB) {
 		request := new(CreateMeetingRequest)
 		err := c.Bind(request)
 		if err == nil {
+			echo_startTime = time.Now()
 			resultCreateMeeting, meetingId, meetingName := createMeeting(db, request.MeetingName, request.MeetingStartTime, request.PresenterIds)
+			echo_endTime = time.Now()
+			fmt.Println("createMeeting: took", echo_endTime.Sub(echo_startTime))
 			result := &CreateMeetingResult{
 				Result:      resultCreateMeeting,
 				MeetingId:   meetingId,

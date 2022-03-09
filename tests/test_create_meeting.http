@@ -2,10 +2,11 @@ POST http://localhost:8080/meeting/create HTTP/1.1
 content-type: application/json
 
 {
-  "meetingName": "hacku2",
-  "meetingStartTime": "2022/03/08 14:00:00",
+  "meetingName": "hacku7",
+  "meetingStartTime": "2022/03/09 12:00:00",
   "presenterIds": [
     "ishikawa1",
-    "yoshida1"
+    "yoshida1",
+    "iwakami1"
   ]
 }
