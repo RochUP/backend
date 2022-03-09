@@ -58,12 +58,6 @@ type Reaction struct {
 	SuggestionOk bool
 }
 
-type VoteQuestionView struct {
-	QuestionId int
-	VoteNum    int
-	MeetingId  int
-}
-
 type ByParticipantOrder []Participant
 
 func (p ByParticipantOrder) Len() int           { return len(p) }
@@ -453,38 +447,38 @@ func selectQuestion(db *gorm.DB, meetingId, documentId int, presenterId string) 
 }
 
 func voteQuestion(db *gorm.DB, questionId int, isVote bool) (int, int, int) {
-	// var question Question
-	// var document Document
-	var voteQuestionView VoteQuestionView
+	var question Question
+	var document Document
+
 	startTime = time.Now()
-	if err := db.First(&voteQuestionView, "question_id = ?", questionId).Error; err != nil {
+	if err := db.First(&question, "question_id = ?", questionId).Error; err != nil {
 		fmt.Printf("質問が非存在: %d\n", questionId)
 		return -1, -1, -1
 	}
 	endTime = time.Now()
 	fmt.Println("Access to vote_question_view(first): took", endTime.Sub(startTime))
-	voteNum := voteQuestionView.VoteNum
+	voteNum := question.VoteNum
 	if isVote {
 		voteNum += 1
 	} else {
 		voteNum -= 1
 	}
 	startTime = time.Now()
-	if err := db.Model(&voteQuestionView).Where("question_id = ?", questionId).Update("vote_num", voteNum).Error; err != nil {
+	if err := db.Model(&question).Where("question_id = ?", questionId).Update("vote_num", voteNum).Error; err != nil {
 		fmt.Printf("update失敗(質問の投票数の更新に失敗しました): %d\n", voteNum)
 		return -1, -1, -1
 	}
 	endTime = time.Now()
 	fmt.Println("Access to vote_question_view(update): took", endTime.Sub(startTime))
-	// startTime = time.Now()
-	// if err := db.First(&document, "document_id = ?", question.DocumentId).Error; err != nil {
-	// 	fmt.Printf("資料が非存在: %d\n", question.DocumentId)
-	// 	return -1, -1, -1
-	// }
-	// endTime = time.Now()
-	// fmt.Println("Access to documents: took", endTime.Sub(startTime))
+	startTime = time.Now()
+	if err := db.First(&document, "document_id = ?", question.DocumentId).Error; err != nil {
+		fmt.Printf("資料が非存在: %d\n", question.DocumentId)
+		return -1, -1, -1
+	}
+	endTime = time.Now()
+	fmt.Println("Access to documents: took", endTime.Sub(startTime))
 
-	return voteQuestionView.MeetingId, questionId, voteNum
+	return document.MeetingId, questionId, voteNum
 }
 
 func handsUp(db *gorm.DB, userId string, documentId int, documentPage int) int {
