@@ -113,7 +113,7 @@ func signupUser(db *gorm.DB, userId string, userName string, userPassword string
 	startTime = time.Now()
 	if err := db.Create(&user).Error; err == nil {
 		endTime = time.Now()
-		fmt.Println("took", endTime.Sub(startTime))
+		fmt.Println("Access to users: took", endTime.Sub(startTime))
 		fmt.Printf("signup成功: %s, %s, %s\n", userId, userName, userPassword)
 		return true
 	} else {
@@ -128,7 +128,7 @@ func loginUser(db *gorm.DB, userId string, userPassword string) (bool, string) {
 	startTime = time.Now()
 	err := db.First(&user, "user_id = ? AND user_password = ?", userId, userPassword).Error
 	endTime = time.Now()
-	fmt.Println("took", endTime.Sub(startTime))
+	fmt.Println("Access to users: took", endTime.Sub(startTime))
 	if err == nil {
 		fmt.Printf("login成功: %s, %s\n", userId, userPassword)
 		return true, user.UserName
@@ -149,22 +149,22 @@ func createMeeting(db *gorm.DB, meetingName string, startTimeStr string, present
 	startTime = time.Now()
 	if err := db.Create(&meeting).Error; err == nil {
 		endTime = time.Now()
-		fmt.Println("took", endTime.Sub(startTime))
+		fmt.Println("Access to meetings: took", endTime.Sub(startTime))
 		for i, presenter := range presenterIds {
 			startTime = time.Now()
 			if err := db.First(&user, "user_id = ?", presenter).Error; err == nil {
 				endTime = time.Now()
-				fmt.Println("took", endTime.Sub(startTime))
+				fmt.Println("Access to users: took", endTime.Sub(startTime))
 				participant := Participant{MeetingId: meeting.MeetingId, UserId: user.UserId, SpeakNum: 0, ParticipantOrder: i}
 				startTime = time.Now()
 				if err := db.Create(&participant).Error; err == nil {
 					endTime = time.Now()
-					fmt.Println("took", endTime.Sub(startTime))
+					fmt.Println("Access to participants: took", endTime.Sub(startTime))
 					document := Document{UserId: user.UserId, MeetingId: meeting.MeetingId}
 					startTime = time.Now()
 					if err := db.Create(&document).Error; err != nil {
 						endTime = time.Now()
-						fmt.Println("took", endTime.Sub(startTime))
+						fmt.Println("Access to documents: took", endTime.Sub(startTime))
 						fmt.Printf("create失敗(空の資料作成に失敗しました)\n")
 						return false, -1, ""
 					}
@@ -194,16 +194,16 @@ func joinMeeting(db *gorm.DB, userId string, meetingId int) (bool, string, time.
 	startTime = time.Now()
 	user_info := db.First(&user, "user_id = ?", userId)
 	endTime = time.Now()
-	fmt.Println("took", endTime.Sub(startTime))
+	fmt.Println("Access to users: took", endTime.Sub(startTime))
 	startTime = time.Now()
 	meeting_info := db.First(&meeting, "meeting_id = ?", meetingId)
 	endTime = time.Now()
-	fmt.Println("took", endTime.Sub(startTime))
+	fmt.Println("Access to meetings: took", endTime.Sub(startTime))
 	if user_info.Error == nil && meeting_info.Error == nil {
 		startTime = time.Now()
 		participant_info := db.First(&participant, "user_id = ? AND meeting_id = ?", userId, meetingId)
 		endTime = time.Now()
-		fmt.Println("took", endTime.Sub(startTime))
+		fmt.Println("Access to participants: took", endTime.Sub(startTime))
 		if participant_info.Error != nil {
 			participant.MeetingId = meetingId
 			participant.UserId = userId
@@ -212,7 +212,7 @@ func joinMeeting(db *gorm.DB, userId string, meetingId int) (bool, string, time.
 			startTime = time.Now()
 			if err := db.Create(&participant).Error; err == nil {
 				endTime = time.Now()
-				fmt.Println("took", endTime.Sub(startTime))
+				fmt.Println("Access to participants: took", endTime.Sub(startTime))
 				fmt.Printf("参加者追加成功: %s, %d\n", userId, meetingId)
 			} else {
 				fmt.Println("参加者追加失敗")
@@ -222,7 +222,7 @@ func joinMeeting(db *gorm.DB, userId string, meetingId int) (bool, string, time.
 		startTime = time.Now()
 		if db.Find(&participants, "meeting_id = ? AND participant_order != -1", meetingId); len(participants) == 0 {
 			endTime = time.Now()
-			fmt.Println("took", endTime.Sub(startTime))
+			fmt.Println("Access to participants: took", endTime.Sub(startTime))
 			fmt.Println("会議非存在")
 			return false, "false", time.Now(), []string{}, []string{}, []int{}
 		}
@@ -238,7 +238,7 @@ func joinMeeting(db *gorm.DB, userId string, meetingId int) (bool, string, time.
 				startTime = time.Now()
 				user_err := db.First(&user, "user_id = ?", presenter_id).Error
 				endTime = time.Now()
-				fmt.Println("took", endTime.Sub(startTime))
+				fmt.Println("Access to users: took", endTime.Sub(startTime))
 				if user_err != nil {
 					fmt.Println("ユーザー非存在")
 					return false, "false", time.Now(), []string{}, []string{}, []int{}
@@ -246,7 +246,7 @@ func joinMeeting(db *gorm.DB, userId string, meetingId int) (bool, string, time.
 				startTime = time.Now()
 				document_err := db.First(&document, "user_id = ? AND meeting_id = ?", p.UserId, p.MeetingId).Error
 				endTime = time.Now()
-				fmt.Println("took", endTime.Sub(startTime))
+				fmt.Println("Access to documents: took", endTime.Sub(startTime))
 				if document_err != nil {
 					fmt.Println("資料非存在")
 					return false, "false", time.Now(), []string{}, []string{}, []int{}
@@ -271,7 +271,7 @@ func documentRegister(db *gorm.DB, documentId int, documentUrl string, script st
 	startTime = time.Now()
 	if err := db.First(&document, "document_id = ?", documentId).Error; err != nil {
 		endTime = time.Now()
-		fmt.Println("took", endTime.Sub(startTime))
+		fmt.Println("Access to documents: took", endTime.Sub(startTime))
 		fmt.Printf("資料が非存在: %d\n", documentId)
 		return false
 	}
@@ -282,7 +282,7 @@ func documentRegister(db *gorm.DB, documentId int, documentUrl string, script st
 			return false
 		} else {
 			endTime = time.Now()
-			fmt.Println("took", endTime.Sub(startTime))
+			fmt.Println("Access to documents: took", endTime.Sub(startTime))
 			fmt.Printf("update成功(資料URLの登録に成功しました): %d\n", document.DocumentId)
 		}
 	}
@@ -293,7 +293,7 @@ func documentRegister(db *gorm.DB, documentId int, documentUrl string, script st
 			return false
 		} else {
 			endTime = time.Now()
-			fmt.Println("took", endTime.Sub(startTime))
+			fmt.Println("Access to documents: took", endTime.Sub(startTime))
 			fmt.Printf("update成功(原稿の登録に成功しました): %d\n", document.DocumentId)
 		}
 	}
@@ -308,7 +308,7 @@ func createQuestion(db *gorm.DB, question Question) (bool, int) {
 		return false, -1
 	}
 	endTime = time.Now()
-	fmt.Println("took", endTime.Sub(startTime))
+	fmt.Println("Access to questions: took", endTime.Sub(startTime))
 	fmt.Printf("create成功(質問の登録に成功しました): %s, %d, %s\n", question.UserId, question.DocumentId, question.QuestionTime)
 	return true, question.QuestionId
 }
@@ -323,35 +323,35 @@ func selectQuestion(db *gorm.DB, meetingId, documentId int, presenterId string) 
 	startTime = time.Now()
 	if voice_question_err := db.First(&question, "document_id = ? AND question_ok = ? AND is_voice = ?", documentId, false, true).Error; voice_question_err == nil {
 		endTime = time.Now()
-		fmt.Println("took", endTime.Sub(startTime))
+		fmt.Println("Access to questions: took", endTime.Sub(startTime))
 		startTime = time.Now()
 		if question_err := db.Model(&question).Where("question_id = ?", question.QuestionId).Update("question_ok", true).Error; question_err != nil {
 			fmt.Printf("update失敗(質問の回答状況の更新に失敗しました): %d\n", question.QuestionId)
 			return false, false, "", -1
 		}
 		endTime = time.Now()
-		fmt.Println("took", endTime.Sub(startTime))
+		fmt.Println("Access to questions: took", endTime.Sub(startTime))
 		startTime = time.Now()
 		if incSpeakNum_err := db.Model(&participant).Where("meeting_id = ? AND user_id = ?", meetingId, question.UserId).Update("speak_num", participant.SpeakNum+1).Error; incSpeakNum_err != nil {
 			fmt.Printf("update失敗(参加者の話数の更新に失敗しました): %s, %d, %d\n", participant.UserId, participant.MeetingId, participant.SpeakNum)
 			return false, false, "", -1
 		}
 		endTime = time.Now()
-		fmt.Println("took", endTime.Sub(startTime))
+		fmt.Println("Access to participants: took", endTime.Sub(startTime))
 		questionUserId = question.UserId
 		return pickQuestioner, suggestQuestion, questionUserId, question.QuestionId
 	} else {
 		startTime = time.Now()
 		if not_voice_question_err := db.First(&question, "document_id = ? AND question_ok = ? AND is_voice = ?", documentId, false, false).Error; not_voice_question_err == nil {
 			endTime = time.Now()
-			fmt.Println("took", endTime.Sub(startTime))
+			fmt.Println("Access to questions: took", endTime.Sub(startTime))
 			startTime = time.Now()
 			if question_err := db.Model(&question).Where("question_id = ?", question.QuestionId).Update("question_ok", true).Error; question_err != nil {
 				fmt.Printf("update失敗(質問の回答状況の更新に失敗しました): %d\n", question.QuestionId)
 				return false, false, "", -1
 			}
 			endTime = time.Now()
-			fmt.Println("took", endTime.Sub(startTime))
+			fmt.Println("Access to questions: took", endTime.Sub(startTime))
 			pickQuestioner = false
 			startTime = time.Now()
 			if incSpeakNum_err := db.Model(&participant).Where("meeting_id = ? AND user_id = ?", meetingId, question.UserId).Update("speak_num", participant.SpeakNum+1).Error; incSpeakNum_err != nil {
@@ -359,7 +359,7 @@ func selectQuestion(db *gorm.DB, meetingId, documentId int, presenterId string) 
 				return false, false, "", -1
 			}
 			endTime = time.Now()
-			fmt.Println("took", endTime.Sub(startTime))
+			fmt.Println("Access to participants: took", endTime.Sub(startTime))
 		}
 	}
 	if pickQuestioner {
@@ -367,12 +367,12 @@ func selectQuestion(db *gorm.DB, meetingId, documentId int, presenterId string) 
 		startTime = time.Now()
 		if db.Find(&participants, "meeting_id = ? AND user_id != ?", meetingId, presenterId); len(participants) != 0 {
 			endTime = time.Now()
-			fmt.Println("took", endTime.Sub(startTime))
+			fmt.Println("Access to participants: took", endTime.Sub(startTime))
 			reactions := make([]Reaction, 0, 10)
 			startTime = time.Now()
 			if db.Find(&reactions, "document_id = ? AND suggestion_ok = ?", documentId, false); len(reactions) != 0 {
 				endTime = time.Now()
-				fmt.Println("took", endTime.Sub(startTime))
+				fmt.Println("Access to reactions: took", endTime.Sub(startTime))
 				sort.Sort(ReverseByReactionNum(reactions))
 				if reactions[0].ReactionNum >= len(participants)/2 {
 					startTime = time.Now()
@@ -381,7 +381,7 @@ func selectQuestion(db *gorm.DB, meetingId, documentId int, presenterId string) 
 						return false, false, "", -1
 					}
 					endTime = time.Now()
-					fmt.Println("took", endTime.Sub(startTime))
+					fmt.Println("Access to reactions: took", endTime.Sub(startTime))
 					question = Question{
 						UserId:       "Moderator",
 						QuestionBody: fmt.Sprintf("%dページについての詳しい説明を要求．", reactions[0].DocumentPage),
@@ -398,7 +398,7 @@ func selectQuestion(db *gorm.DB, meetingId, documentId int, presenterId string) 
 						return false, false, "", -1
 					}
 					endTime = time.Now()
-					fmt.Println("took", endTime.Sub(startTime))
+					fmt.Println("Access to questions: took", endTime.Sub(startTime))
 					fmt.Printf("create成功(質問の登録に成功しました): %s, %d, %s\n", question.UserId, question.DocumentId, question.QuestionTime)
 					pickQuestioner = false
 					suggestQuestion = true
@@ -428,14 +428,14 @@ func selectQuestion(db *gorm.DB, meetingId, documentId int, presenterId string) 
 				return false, false, "", -1
 			}
 			endTime = time.Now()
-			fmt.Println("took", endTime.Sub(startTime))
+			fmt.Println("Access to questions: took", endTime.Sub(startTime))
 			startTime = time.Now()
 			if err := db.Model(&participant).Where("user_id = ? AND meeting_id = ?", participant.UserId, participant.MeetingId).Update("speak_num", participant.SpeakNum+1).Error; err != nil {
 				fmt.Printf("update失敗(参加者の話数の更新に失敗しました): %s, %d, %d\n", participant.UserId, participant.MeetingId, participant.SpeakNum)
 				return false, false, "", -1
 			}
 			endTime = time.Now()
-			fmt.Println("took", endTime.Sub(startTime))
+			fmt.Println("Access to participants: took", endTime.Sub(startTime))
 			fmt.Printf("create成功(質問の登録に成功しました): %s, %d, %s\n", question.UserId, question.DocumentId, question.QuestionTime)
 
 		} else {
@@ -455,7 +455,7 @@ func voteQuestion(db *gorm.DB, questionId int, isVote bool) (int, int, int) {
 		return -1, -1, -1
 	}
 	endTime = time.Now()
-	fmt.Println("took", endTime.Sub(startTime))
+	fmt.Println("Access to questions: took", endTime.Sub(startTime))
 	voteNum := question.VoteNum
 	if isVote {
 		voteNum += 1
@@ -468,14 +468,14 @@ func voteQuestion(db *gorm.DB, questionId int, isVote bool) (int, int, int) {
 		return -1, -1, -1
 	}
 	endTime = time.Now()
-	fmt.Println("took", endTime.Sub(startTime))
+	fmt.Println("Access to questions: took", endTime.Sub(startTime))
 	startTime = time.Now()
 	if err := db.First(&document, "document_id = ?", question.DocumentId).Error; err != nil {
 		fmt.Printf("資料が非存在: %d\n", question.DocumentId)
 		return -1, -1, -1
 	}
 	endTime = time.Now()
-	fmt.Println("took", endTime.Sub(startTime))
+	fmt.Println("Access to documents: took", endTime.Sub(startTime))
 
 	return document.MeetingId, questionId, voteNum
 }
@@ -489,14 +489,14 @@ func handsUp(db *gorm.DB, userId string, documentId int, documentPage int) int {
 		return -1
 	}
 	endTime = time.Now()
-	fmt.Println("took", endTime.Sub(startTime))
+	fmt.Println("Access to documents: took", endTime.Sub(startTime))
 	startTime = time.Now()
 	if user_err := db.First(&User{}, "user_id = ?", userId).Error; user_err != nil {
 		fmt.Printf("ユーザーが非存在: %s\n", userId)
 		return -1
 	}
 	endTime = time.Now()
-	fmt.Println("took", endTime.Sub(startTime))
+	fmt.Println("Access to users: took", endTime.Sub(startTime))
 
 	question := Question{
 		UserId:       userId,
@@ -514,7 +514,7 @@ func handsUp(db *gorm.DB, userId string, documentId int, documentPage int) int {
 		return -1
 	}
 	endTime = time.Now()
-	fmt.Println("took", endTime.Sub(startTime))
+	fmt.Println("Access to questions: took", endTime.Sub(startTime))
 	fmt.Printf("create成功(質問の登録に成功しました): %s, %d, %d, %s\n", question.UserId, question.DocumentId, question.DocumentPage, question.QuestionTime)
 	return document.MeetingId
 }
@@ -530,28 +530,28 @@ func handsDown(db *gorm.DB, userId string, documentId int, documentPage int) int
 		return -1
 	}
 	endTime = time.Now()
-	fmt.Println("took", endTime.Sub(startTime))
+	fmt.Println("Access to documents: took", endTime.Sub(startTime))
 	startTime = time.Now()
 	if user_err := db.First(&User{}, "user_id = ?", userId).Error; user_err != nil {
 		fmt.Printf("ユーザーが非存在: %s\n", userId)
 		return -1
 	}
 	endTime = time.Now()
-	fmt.Println("took", endTime.Sub(startTime))
+	fmt.Println("Access to users: took", endTime.Sub(startTime))
 	startTime = time.Now()
 	if question_err := db.First(&question, "user_id = ? AND document_id = ? AND document_page = ? AND question_ok = ? AND is_voice = ?", userId, document.DocumentId, documentPage, false, true).Error; question_err != nil {
 		fmt.Printf("質問が非存在: %s, %d, %d\n", userId, document.DocumentId, documentPage)
 		return -1
 	}
 	endTime = time.Now()
-	fmt.Println("took", endTime.Sub(startTime))
+	fmt.Println("Access to questions: took", endTime.Sub(startTime))
 	startTime = time.Now()
 	if delete_question_err := db.Where("question_id = ?", question.QuestionId).Delete(&question).Error; delete_question_err != nil {
 		fmt.Printf("delete失敗(質問の削除に失敗しました): %d\n", question.QuestionId)
 		return -1
 	}
 	endTime = time.Now()
-	fmt.Println("took", endTime.Sub(startTime))
+	fmt.Println("Access to questions: took", endTime.Sub(startTime))
 	fmt.Printf("delete成功(質問の削除に成功しました): %d\n", question.QuestionId)
 	return document.MeetingId
 }
@@ -565,7 +565,7 @@ func voteReaction(db *gorm.DB, documentId int, documentPage int, isReaction bool
 		return -1, -1
 	}
 	endTime = time.Now()
-	fmt.Println("took", endTime.Sub(startTime))
+	fmt.Println("Access to documents: took", endTime.Sub(startTime))
 	startTime = time.Now()
 	if reaction_err := db.First(&reaction, "document_id = ? AND document_page = ?", documentId, documentPage).Error; reaction_err != nil {
 		if !isReaction {
@@ -573,7 +573,7 @@ func voteReaction(db *gorm.DB, documentId int, documentPage int, isReaction bool
 			return -1, -1
 		}
 		endTime = time.Now()
-		fmt.Println("took", endTime.Sub(startTime))
+		fmt.Println("Access to reactions: took", endTime.Sub(startTime))
 		reaction = Reaction{
 			DocumentId:   document.DocumentId,
 			DocumentPage: documentPage,
@@ -586,11 +586,11 @@ func voteReaction(db *gorm.DB, documentId int, documentPage int, isReaction bool
 			return -1, -1
 		}
 		endTime = time.Now()
-		fmt.Println("took", endTime.Sub(startTime))
+		fmt.Println("Access to reactions: took", endTime.Sub(startTime))
 		fmt.Printf("create成功(資料リアクションの登録に成功しました): %d, %d\n", reaction.DocumentId, reaction.DocumentPage)
 	} else {
 		endTime = time.Now()
-		fmt.Println("took", endTime.Sub(startTime))
+		fmt.Println("Access to reactions: took", endTime.Sub(startTime))
 		reactionNum := reaction.ReactionNum
 		if isReaction {
 			reactionNum += 1
@@ -603,7 +603,7 @@ func voteReaction(db *gorm.DB, documentId int, documentPage int, isReaction bool
 			return -1, -1
 		}
 		endTime = time.Now()
-		fmt.Println("took", endTime.Sub(startTime))
+		fmt.Println("Access to reactions: took", endTime.Sub(startTime))
 		fmt.Printf("update成功(資料リアクションのリアクション数の更新に成功しました): %d, %d\n", reaction.DocumentId, reaction.DocumentPage)
 	}
 	return document.MeetingId, reaction.ReactionNum
@@ -617,17 +617,17 @@ func getNextPresenterId(db *gorm.DB, meetingId int, nowPresenterId string) (bool
 		return false, "", -1
 	}
 	endTime = time.Now()
-	fmt.Println("took", endTime.Sub(startTime))
+	fmt.Println("Access to participants: took", endTime.Sub(startTime))
 	nextOrder := participant.ParticipantOrder + 1
 	startTime = time.Now()
 	if meeting_end_err := db.First(&participant, "meeting_id = ? AND participant_order = ?", meetingId, nextOrder).Error; meeting_end_err != nil {
 		endTime = time.Now()
-		fmt.Println("took", endTime.Sub(startTime))
+		fmt.Println("Access to participants: took", endTime.Sub(startTime))
 		fmt.Printf("会議終了につき次の発表者が非存在: %d\n", nextOrder)
 		return true, "", -1
 	}
 	endTime = time.Now()
-	fmt.Println("took", endTime.Sub(startTime))
+	fmt.Println("Access to participants: took", endTime.Sub(startTime))
 	return false, participant.UserId, nextOrder
 }
 
@@ -639,7 +639,7 @@ func getUserName(db *gorm.DB, userId string) string {
 		return ""
 	}
 	endTime = time.Now()
-	fmt.Println("took", endTime.Sub(startTime))
+	fmt.Println("Access to users: took", endTime.Sub(startTime))
 	return user.UserName
 }
 
@@ -651,7 +651,7 @@ func getQuestionBody(db *gorm.DB, questionId int) (string, int) {
 		return "", -1
 	}
 	endTime = time.Now()
-	fmt.Println("took", endTime.Sub(startTime))
+	fmt.Println("Access to documents: took", endTime.Sub(startTime))
 	return question.QuestionBody, question.DocumentPage
 }
 
@@ -663,7 +663,7 @@ func getQuestionDocumentPage(db *gorm.DB, questionId int) int {
 		return -1
 	}
 	endTime = time.Now()
-	fmt.Println("took", endTime.Sub(startTime))
+	fmt.Println("Access to questions: took", endTime.Sub(startTime))
 	return question.DocumentPage
 }
 
@@ -675,7 +675,7 @@ func getDocumentId(db *gorm.DB, userId string, meetingId int) int {
 		return -1
 	}
 	endTime = time.Now()
-	fmt.Println("took", endTime.Sub(startTime))
+	fmt.Println("Access to documents: took", endTime.Sub(startTime))
 	return document.DocumentId
 }
 
@@ -692,7 +692,7 @@ func documentGet(db *gorm.DB, documentId int) (bool, string, string) {
 		return false, "", ""
 	}
 	endTime = time.Now()
-	fmt.Println("took", endTime.Sub(startTime))
+	fmt.Println("Access to documents: took", endTime.Sub(startTime))
 	if documentUrl = document.DocumentUrl; documentUrl == nil {
 		fmt.Printf("資料URLが非存在: %d\n", documentId)
 		documentUrl = &emptyString
@@ -712,7 +712,7 @@ func getPresenterId(db *gorm.DB, documentId int) string {
 		return ""
 	}
 	endTime = time.Now()
-	fmt.Println("took", endTime.Sub(startTime))
+	fmt.Println("Access to documents: took", endTime.Sub(startTime))
 	return document.UserId
 }
 
@@ -721,9 +721,9 @@ func setMeetingDone(db *gorm.DB, meetingId int) {
 	startTime = time.Now()
 	db.First(&meeting, "meeting_id = ?", meetingId)
 	endTime = time.Now()
-	fmt.Println("took", endTime.Sub(startTime))
+	fmt.Println("Access to meetings: took", endTime.Sub(startTime))
 	startTime = time.Now()
 	db.Model(&meeting).Where("meeting_id = ?", meetingId).Update("meeting_done", true)
 	endTime = time.Now()
-	fmt.Println("took", endTime.Sub(startTime))
+	fmt.Println("Access to meetings: took", endTime.Sub(startTime))
 }
