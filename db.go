@@ -101,12 +101,12 @@ func (p BySpeakNum) Less(i, j int) bool { return p[i].SpeakNum < p[j].SpeakNum }
 // SQLConnect DB接続
 func sqlConnect() (database *gorm.DB, err error) {
 	DBMS := os.Getenv("DBMS")
-	USER := os.Getenv("USER")
-	PASS := os.Getenv("PASS")
-	PROTOCOL := os.Getenv("PROTOCOL")
+	DBUSER := os.Getenv("DBUSER")
+	DBPASS := os.Getenv("DBPASS")
+	DBPROTOCOL := os.Getenv("DBPROTOCOL")
 	DBNAME := os.Getenv("DBNAME")
 
-	CONNECT := USER + ":" + PASS + "@" + PROTOCOL + "/" + DBNAME + "?charset=utf8&parseTime=true&loc=Asia%2FTokyo"
+	CONNECT := DBUSER + ":" + DBPASS + "@" + DBPROTOCOL + "/" + DBNAME + "?tls=true&charset=utf8&parseTime=true&loc=Asia%2FTokyo"
 	return gorm.Open(DBMS, CONNECT)
 }
 
